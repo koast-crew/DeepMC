@@ -47,22 +47,22 @@ class Position_based_content_attention(nn.Module):
             # W_a_output / (batch size, decoder time step + encoder time step)
             W_a_output = self.W_a(s_i)
             
-            # concat / (batch,size, decoder time step + encoder time step)
-            concat = W_a_output + U_a_output
+            # sum_output / (batch,size, decoder time step + encoder time step)
+            sum_output = W_a_output + U_a_output
 
             
             # delta_i_t_j / (decoder time step + encoder time step)
             delta_i_T_j = torch.zeros((self.num_encoder_times+self.num_decoder_times)).cuda()
             delta_i_T_j[:self.num_encoder_times] = 1
 
-            # concat_tanh / (batch size, decoder time step + encoder time step)
-            concat_tanh = torch.tanh(concat)
+            # sum_tanh / (batch size, decoder time step + encoder time step)
+            sum_tanh = torch.tanh(sum_output)
 
-            # concat_tanh_hadamard_delta / (batch size, decoder time step + encoder time step)
-            concat_tanh_hadamard_delta = concat_tanh*delta_i_T_j
+            # sum_tanh_hadamard_delta / (batch size, decoder time step + encoder time step)
+            sum_tanh_hadamard_delta = sum_tanh*delta_i_T_j
 
             # v_a_output / (batch size, 1)
-            v_a_output.append(self.v_a(concat_tanh_hadamard_delta))
+            v_a_output.append(self.v_a(sum_tanh_hadamard_delta))
         
         # e_ij / (batch size, encoder time step)
         e_ij = torch.cat(v_a_output,dim=1)
